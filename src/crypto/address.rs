@@ -40,13 +40,11 @@ impl CryptoAddress {
         let Self { mut hasher, .. } = self;
 
         // To debug all the payloads in a hash to find a diff, this can be useful.
-        /*
         dbg!(
             "Update:\n\tpayload: {}\n\tfield_address: {}",
             hex::encode(hasher.finalize().as_bytes()),
             hex::encode(payload)
         );
-        */
 
         // See also 91e48829-7bea-4426-971a-f092856269a5
         hasher.update(&[0]);

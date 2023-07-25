@@ -1,5 +1,3 @@
-use uint::construct_uint;
-
 use super::u192::U192;
 
 // Useful reading: https://kevinventullo.com/2018/12/24/hashing-unordered-sets-how-far-will-cleverness-take-you/
@@ -8,15 +6,6 @@ use super::u192::U192;
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash)]
 pub struct FldMix(U192);
-
-// This is a quick and dirty way to let us do arithmetic modulo 2^192,
-// since the U192 type can only hold values in the range [0, 2^192 - 1].
-// We need to divide 2^192 by an integer (once) in order to calculate inverses mod 2^192.
-// Alternatively, is there a way to compute floor(p / q) and p % q
-// given floor(p - 1) / q and (p - 1) % q? That would help...
-construct_uint! {
-    pub struct U256(4);
-}
 
 impl FldMix {
     const P: U192 = U192([2305843009213693959, 2305843009213693950, 0]);
@@ -28,13 +17,6 @@ impl FldMix {
         18446744073709551615,
     ]);
 
-    #[cfg(test)]
-    pub(crate) fn rand() -> Self {
-        use rand::thread_rng as rng;
-        use rand::Rng as _;
-        FldMix(U192([rng().gen(), rng().gen(), rng().gen()]))
-    }
-
     #[inline]
     pub const fn new() -> Self {
         Self(Self::I)
@@ -43,57 +25,6 @@ impl FldMix {
     #[inline(always)]
     fn u(x: U192, y: U192) -> U192 {
         Self::P + Self::Q * (x + y) + Self::R * x * y
-    }
-
-    #[inline(always)]
-    fn u_inverse(x: U192, y: U192) -> U192 {
-        Self::mod_inv_2192(Self::Q + Self::R * y) * (x - Self::P - Self::Q * y)
-    }
-
-    /// Implementation of the Extended Euclidean Algorithm for U192s modulo 2^192.
-    /// Useful reading: http://www-math.ucdenver.edu/~wcherowi/courses/m5410/exeucalg.html
-    /// Returns the inverse of x modulo 2^192 (assuming x is odd, of course)
-    /// Warning: Assumes x is even, but will verify this in debug.
-    fn mod_inv_2192(x: U192) -> U192 {
-        //convert to U256
-        let mut x: U256 = U256([x.0[0], x.0[1], x.0[2], 0]);
-
-        debug_assert!(x.0[0] % 2 != 0, "Even numbers have no inverse mod 2^192");
-
-        let mut b: U256 = U256([0, 0, 0, 1]);
-        let modulus: U256 = b;
-
-        let mut prev_s: U256 = U256([1, 0, 0, 0]);
-        let mut s: U256 = U256([0, 0, 0, 0]);
-
-        let mut prev_t: U256 = U256([0, 0, 0, 0]);
-        let mut t: U256 = U256([1, 0, 0, 0]);
-
-        while b > U256([0, 0, 0, 0]) {
-            let quotient: U256 = x / b;
-
-            let mut tmp = prev_s;
-            prev_s = s;
-
-            if quotient * s > tmp {
-                tmp = tmp + (U256([1, 0, 0, 0]) + (quotient * s) / modulus) * (modulus);
-            }
-
-            s = (tmp - quotient * s) % modulus;
-
-            tmp = prev_t;
-            prev_t = t;
-            if quotient * t > tmp {
-                tmp = tmp + (U256([1, 0, 0, 0]) + (quotient * t) / modulus) * (modulus);
-            }
-            t = (tmp - quotient * t) % modulus;
-
-            tmp = x;
-            x = b;
-            b = tmp % b;
-        }
-
-        U192([prev_s.0[0], prev_s.0[1], prev_s.0[2]])
     }
 
     pub fn mix(&mut self, value: u128, seed: u64) {
@@ -107,10 +38,6 @@ impl FldMix {
 
     pub fn mixin(&mut self, value: &Self) {
         self.0 = Self::u(self.0, value.0);
-    }
-
-    pub fn unmix(&mut self, value: &Self) {
-        self.0 = Self::u_inverse(self.0, value.0);
     }
 
     #[cfg(test)]

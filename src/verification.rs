@@ -142,10 +142,7 @@ impl StableHasher for ChildChecker {
         );
     }
     fn mixin(&mut self, _other: &Self) {
-        unimplemented!()
-    }
-    fn unmix(&mut self, _other: &Self) {
-        unimplemented!()
+        todo!()
     }
     fn finish(&self) -> Self::Out {
         if let Some(err) = &self.err {
