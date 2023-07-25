@@ -1,8 +1,9 @@
 use crate::prelude::*;
+use core::fmt::Debug;
 use std::borrow::Borrow;
 use std::convert::{TryFrom, TryInto};
 
-pub trait UInt: TryFrom<usize> + Copy {
+pub trait UInt: TryFrom<usize> + Copy + Debug {
     type Bytes: Borrow<[u8]>;
     fn prime_init() -> Self;
     fn prime_mult() -> Self;
@@ -11,7 +12,7 @@ pub trait UInt: TryFrom<usize> + Copy {
     fn wrapping_mul(self, other: Self) -> Self;
 }
 
-pub trait SequenceNumber: Clone {
+pub trait SequenceNumber: Clone + core::fmt::Debug {
     fn root() -> Self;
     fn next_child(&mut self) -> Self;
     fn skip(&mut self, count: usize) {
@@ -22,7 +23,7 @@ pub trait SequenceNumber: Clone {
 }
 
 #[derive(Debug, Clone)]
-pub struct SequenceNumberInt<T> {
+pub struct SequenceNumberInt<T: Debug> {
     rollup: T,
     child: usize,
 }

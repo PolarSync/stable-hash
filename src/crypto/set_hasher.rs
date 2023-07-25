@@ -31,7 +31,8 @@ pub struct SetHasher {
 
 impl Default for SetHasher {
     fn default() -> Self {
-
+        let d = crate::CallDepth::new();
+        println!("{d}new SetHasher");
         Self { value: UBig::one() }
     }
 }
@@ -87,6 +88,9 @@ impl StableHasher for SetHasher {
     fn write(&mut self, sequence_number: Self::Seq, bytes: &[u8]) {
         profile_method!(write);
 
+        let d = crate::CallDepth::new();
+        println!("{d}start write: {}", self.value);
+        let number = sequence_number.number();
         // Write the field into a database cell
         let mut output = sequence_number.finish(bytes);
         // Extend to the length necessary. This is a 2048 bit value, 1 bit
@@ -94,7 +98,17 @@ impl StableHasher for SetHasher {
         let mut digits = [0u8; 256];
         output.fill(&mut digits);
         let digits = UBig::from_le_bytes(&digits);
-        self.mixin(&digits)
+        self.mixin(&digits);
+        println!(
+            "{d}write: {number}, len: {} {:?} -> {}",
+            bytes.len(),
+            &bytes[..bytes.len().min(32)],
+            self.value
+        );
+        // if d.0 <= 3 {
+        //     let backtrace = std::backtrace::Backtrace::force_capture();
+        //     println!("backtrace: {backtrace}");
+        // }
     }
 
     #[inline]
@@ -120,4 +134,35 @@ impl StableHasher for SetHasher {
         hasher.update(&le);
         hasher.finalize().into()
     }
+}
+
+#[test]
+fn test_set_hasher() {
+    fn write(agg: &mut SetHasher, value: impl StableHash, seq: Blake3SeqNo) {
+        <SetHasher as UnorderedAggregator<Blake3SeqNo>>::write(agg, value, seq);
+    }
+    use crate::stable_hash::UnorderedAggregator;
+    let mut h = SetHasher::new();
+    let mut unord = h.start_unordered();
+    let mut seq = Blake3SeqNo::root();
+    let unord_seq = seq.next_child();
+    write(&mut unord, 42_u8, unord_seq.clone());
+    write(&mut unord, "test-string", unord_seq.clone());
+    write(&mut unord, ("token", 127_usize), unord_seq.clone());
+    write(&mut unord, 43_u8, unord_seq.clone());
+    h.finish_unordered(unord, seq);
+    let x = h.finish();
+    println!("{x:?}");
+    let mut h = SetHasher::new();
+    let mut unord = h.start_unordered();
+    let mut seq = Blake3SeqNo::root();
+    let unord_seq = seq.next_child();
+    write(&mut unord, 42_u8, unord_seq.clone());
+    write(&mut unord, ("token", 127_usize), unord_seq.clone());
+    write(&mut unord, "test-string", unord_seq.clone());
+    write(&mut unord, 43_u8, unord_seq.clone());
+    h.finish_unordered(unord, seq);
+    let x = h.finish();
+    println!("{x:?}");
+    panic!("{:?}", x);
 }
