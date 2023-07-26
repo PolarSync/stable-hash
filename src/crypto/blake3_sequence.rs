@@ -62,7 +62,7 @@ impl Blake3SeqNo {
 
         let Self { mut hasher, .. } = self;
 
-        #[cfg(debug_assertions)]
+        #[cfg(feature = "debug")]
         {
             // To debug all the payloads in a hash to find a diff, this can be useful.
             #[derive(Debug)]
