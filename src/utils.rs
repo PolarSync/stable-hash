@@ -13,15 +13,15 @@ pub struct AsBytes<'a>(pub &'a [u8]);
 impl StableHash for AsBytes<'_> {
     fn stable_hash<H: StableHasher>(&self, sequence_number: H::Seq, state: &mut H) {
         profile_method!(stable_hash);
-        let d = crate::CallDepth::new();
+        // let d = crate::CallDepth::new();
         if !self.0.is_empty() {
-            println!(
-                "{d}stable_hash as_bytes: {} {sequence_number:?}",
-                self.0.len()
-            );
+            // println!(
+            //     "{d}stable_hash as_bytes: {} {sequence_number:?}",
+            //     self.0.len()
+            // );
             state.write(sequence_number, self.0);
         } else {
-            println!("{d}stable_hash as_bytes skipped: {}", self.0.len());
+            // println!("{d}stable_hash as_bytes skipped: {}", self.0.len());
         }
     }
 }
@@ -49,18 +49,18 @@ pub struct AsInt<'a> {
 impl StableHash for AsInt<'_> {
     fn stable_hash<H: StableHasher>(&self, mut sequence_number: H::Seq, state: &mut H) {
         profile_method!(stable_hash);
-        let d = crate::CallDepth::new();
-        println!(
-            "{d}start stable_hash AsInt: {} {sequence_number:?}",
-            self.little_endian.len()
-        );
+        // let d = crate::CallDepth::new();
+        // println!(
+        //     "{d}start stable_hash AsInt: {} {sequence_number:?}",
+        //     self.little_endian.len()
+        // );
         self.is_negative
             .stable_hash(sequence_number.next_child(), state);
         let canon = trim_zeros(self.little_endian);
         if !canon.is_empty() {
             state.write(sequence_number, canon);
         }
-        println!("{d}end stable_hash AsInt: {}", self.little_endian.len());
+        // println!("{d}end stable_hash AsInt: {}", self.little_endian.len());
     }
 }
 

@@ -26,20 +26,20 @@ pub(self) fn unordered_unique_stable_hash<H: StableHasher, SH: StableHash>(
 
     let mut unordered = state.start_unordered();
     let mut count = 0usize;
-    let d = crate::CallDepth::new();
-    println!(
-        "{d}start unordered stable_hash: {} {sequence_number:?}",
-        std::any::type_name::<SH>()
-    );
+    // let d = crate::CallDepth::new();
+    // println!(
+    //     "{d}start unordered stable_hash: {} {sequence_number:?}",
+    //     std::any::type_name::<SH>()
+    // );
     for member in items {
         unordered.write(member, member_seq_no.clone());
         count += 1;
     }
     state.finish_unordered(unordered, rollup_seq_no);
-    println!(
-        "{d}end unordered stable_hash: {} {sequence_number:?}",
-        std::any::type_name::<SH>()
-    );
+    // println!(
+    //     "{d}end unordered stable_hash: {} {sequence_number:?}",
+    //     std::any::type_name::<SH>()
+    // );
     count.stable_hash(count_seq_no, state);
 }
 

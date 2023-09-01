@@ -24,7 +24,7 @@ impl SequenceNumber for Blake3SeqNo {
     fn root() -> Self {
         profile_method!(root);
 
-        println!("new Blake3SeqNo root");
+        // println!("new Blake3SeqNo root");
         Self {
             hasher: Hasher::new(),
             child: NonZeroUsize::new(1).unwrap(),
@@ -37,7 +37,7 @@ impl SequenceNumber for Blake3SeqNo {
         let mut hasher = self.hasher.clone();
         // Better to panic than overflow.
         self.child = NonZeroUsize::new(child.get() + 1).unwrap();
-        println!("Blake3SeqNo next_child {}", self.child);
+        // println!("Blake3SeqNo next_child {}", self.child);
         // Include the child node
         write_varint(&mut hasher, child.get().try_into().unwrap()).unwrap();
         Self {

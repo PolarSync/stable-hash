@@ -31,8 +31,8 @@ pub struct SetHasher {
 
 impl Default for SetHasher {
     fn default() -> Self {
-        let d = crate::CallDepth::new();
-        println!("{d}new SetHasher");
+        // let d = crate::CallDepth::new();
+        // println!("{d}new SetHasher");
         Self { value: UBig::one() }
     }
 }
@@ -88,8 +88,8 @@ impl StableHasher for SetHasher {
     fn write(&mut self, sequence_number: Self::Seq, bytes: &[u8]) {
         profile_method!(write);
 
-        let d = crate::CallDepth::new();
-        println!("{d}start write: {}", self.value);
+        // let d = crate::CallDepth::new();
+        // println!("{d}start write: {}", self.value);
         let number = sequence_number.number();
         // Write the field into a database cell
         let mut output = sequence_number.finish(bytes);
@@ -99,12 +99,12 @@ impl StableHasher for SetHasher {
         output.fill(&mut digits);
         let digits = UBig::from_le_bytes(&digits);
         self.mixin(&digits);
-        println!(
-            "{d}write: {number}, len: {} {:?} -> {}",
-            bytes.len(),
-            &bytes[..bytes.len().min(32)],
-            self.value
-        );
+        // println!(
+        //     "{d}write: {number}, len: {} {:?} -> {}",
+        //     bytes.len(),
+        //     &bytes[..bytes.len().min(32)],
+        //     self.value
+        // );
         // if d.0 <= 3 {
         //     let backtrace = std::backtrace::Backtrace::force_capture();
         //     println!("backtrace: {backtrace}");

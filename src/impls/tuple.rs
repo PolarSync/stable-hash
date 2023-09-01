@@ -8,17 +8,17 @@ macro_rules! impl_tuple {
                 profile_method!(stable_hash);
 
                 let ($($T,)*) = self;
-                let d = crate::CallDepth::new();
-                println!("{d}start stable_hash tuple {} {sequence_number:?}", std::any::type_name::<($($T,)*)>());
+                // let d = crate::CallDepth::new();
+                // println!("{d}start stable_hash tuple {} {sequence_number:?}", std::any::type_name::<($($T,)*)>());
                 $(
                     {
-                        let d = crate::CallDepth::new();
-                        println!("{d}start stable_hash tuple index {} {sequence_number:?}", std::any::type_name::<$T>());
+                        // let d = crate::CallDepth::new();
+                        // println!("{d}start stable_hash tuple index {} {sequence_number:?}", std::any::type_name::<$T>());
                         $T.stable_hash(sequence_number.next_child(), state);
-                        println!("{d}end stable_hash tuple index {} {sequence_number:?}", std::any::type_name::<$T>());
+                        // println!("{d}end stable_hash tuple index {} {sequence_number:?}", std::any::type_name::<$T>());
                     }
                 )*
-                println!("{d}end stable_hash tuple {} {sequence_number:?}", std::any::type_name::<($($T,)*)>());
+                // println!("{d}end stable_hash tuple {} {sequence_number:?}", std::any::type_name::<($($T,)*)>());
             }
         }
     }
