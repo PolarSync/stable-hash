@@ -8,7 +8,9 @@ impl FieldAddress for u128 {
     fn child(&self, number: u64) -> Self {
         profile_method!(child);
 
-        self.wrapping_mul(486_187_739).wrapping_add(number as u128)
+        let child = self.wrapping_mul(486_187_739).wrapping_add(number as u128);
+        hash_debug!("child: {child}");
+        child
     }
     #[inline]
     fn unordered(&self) -> (Self, Self) {

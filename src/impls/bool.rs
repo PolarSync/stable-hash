@@ -6,6 +6,7 @@ impl StableHash for bool {
         profile_method!(stable_hash);
 
         if *self {
+            hash_debug!("bool");
             state.write(field_address, &[]);
         }
     }

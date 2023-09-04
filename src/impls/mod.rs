@@ -17,6 +17,8 @@ pub(self) fn unordered_unique_stable_hash<H: StableHasher>(
 ) {
     profile_fn!(unordered_unique_stable_hash);
 
+    let d = CallDepth::new();
+    let mut count = 0;
     for member in items {
         // Must create an independent hasher to "break" relationship between
         // independent field addresses.
@@ -25,6 +27,8 @@ pub(self) fn unordered_unique_stable_hash<H: StableHasher>(
         let (a, b) = field_address.unordered();
         member.stable_hash(a, &mut new_hasher);
         state.write(b, new_hasher.to_bytes().as_ref());
+        count += 1;
+        hash_debug!("member {count}: {}", hex::encode(state.to_bytes()));
     }
 }
 

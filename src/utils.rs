@@ -11,6 +11,7 @@ impl StableHash for AsBytes<'_> {
         profile_method!(stable_hash);
 
         if !self.0.is_empty() {
+            hash_debug!("as_bytes: {:?}", self.0);
             state.write(field_address, self.0)
         }
     }
@@ -40,6 +41,7 @@ impl StableHash for AsInt<'_> {
     fn stable_hash<H: StableHasher>(&self, field_address: H::Addr, state: &mut H) {
         profile_method!(stable_hash);
 
+        let d = CallDepth::new();
         // Having the negative sign be a child makes it possible to change the schema
         // from u32 to i64 in a backward compatible way.
         // This is also allowing for negative 0, like float, which is not used by
@@ -51,6 +53,11 @@ impl StableHash for AsInt<'_> {
         if !canon.is_empty() {
             state.write(field_address, canon);
         }
+        hash_debug!(
+            "AsInt: is_negative: {}, bytes: {}",
+            self.is_negative,
+            hex::encode(canon)
+        );
     }
 }
 

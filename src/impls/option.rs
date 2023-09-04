@@ -5,6 +5,8 @@ impl<T: StableHash> StableHash for Option<T> {
         profile_method!(stable_hash);
 
         if let Some(value) = self {
+            let d = CallDepth::new();
+            hash_debug!("Option: Some");
             value.stable_hash(field_address.child(0), state);
             state.write(field_address, &[]);
         }

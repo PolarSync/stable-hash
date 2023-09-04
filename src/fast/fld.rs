@@ -53,6 +53,7 @@ impl FldMix {
         bytes[0..8].copy_from_slice(&self.0 .0[0].to_le_bytes());
         bytes[8..16].copy_from_slice(&self.0 .0[1].to_le_bytes());
         bytes[16..24].copy_from_slice(&self.0 .0[2].to_le_bytes());
+        hash_debug!("bytes: {}", hex::encode(bytes));
         bytes
     }
 

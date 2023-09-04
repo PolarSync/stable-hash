@@ -14,6 +14,72 @@
 //!    (where collide is defined as contribution to the hash is injective in respect to the encoding. It is
 //!    still possible to find collisions in the final output, especially for the non-cryptographic version)
 
+#[macro_export]
+#[cfg(feature = "debug")]
+macro_rules! hash_debug {
+    ($f:tt) => {{
+        println!($f);
+    }};
+    ($f:tt, $($arg:tt)*) => {{
+        use std::io::Write;
+        let d = $crate::CallDepth::new();
+        let mut lock = std::io::stdout().lock();
+        write!(lock, "hash_debug: {d}").unwrap();
+        writeln!(lock, $f, $($arg)*).unwrap();
+    }};
+}
+
+#[macro_export]
+#[cfg(not(feature = "debug"))]
+macro_rules! hash_debug {
+    ($f:tt) => {{
+        // do nothing
+    }};
+    ($f:tt, $($arg:tt)*) => {{
+        // do nothing
+    }};
+}
+
+#[derive(Debug)]
+pub struct CallDepth(u32);
+
+thread_local! {
+  static DEPTH: core::cell::Cell<u32> = core::cell::Cell::new(0);
+}
+
+impl Drop for CallDepth {
+    fn drop(&mut self) {
+        DEPTH.with(|d| {
+            d.set(self.0);
+        })
+    }
+}
+
+impl Default for CallDepth {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl CallDepth {
+    pub fn new() -> Self {
+        Self(DEPTH.with(|d| {
+            let depth = d.get();
+            d.set(depth + 1);
+            depth
+        }))
+    }
+}
+
+impl core::fmt::Display for CallDepth {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for _ in 0..self.0 {
+            f.write_str("   ")?;
+        }
+        Ok(())
+    }
+}
+
 pub mod crypto;
 pub mod fast;
 mod impls;
