@@ -53,7 +53,10 @@ impl StableHasher for FastStableHasher {
         // Also considered: t1ha3, MetroHash, SipHasher24
         // For more information about XXH3, see this:
         // https://fastcompression.blogspot.com/2019/03/presenting-xxh3.html
-        println!("input bytes: {bytes:?}, hashed #{}", self.count);
+        #[cfg(feature = "debug")]
+        {
+            println!("input bytes: {bytes:?}, hashed #{}", self.count);
+        }
         let hash = xxhash_rust::xxh3::xxh3_128_with_seed(bytes, field_address as u64);
         self.mixer.mix(hash, (field_address >> 64) as u64);
         self.count += 1;
