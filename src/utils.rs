@@ -11,7 +11,7 @@ impl StableHash for AsBytes<'_> {
         profile_method!(stable_hash);
 
         if !self.0.is_empty() {
-            hash_debug!("as_bytes: {:?}", self.0);
+            hash_debug!("as_bytes: {}", hex::encode(self.0));
             state.write(field_address, self.0)
         }
     }

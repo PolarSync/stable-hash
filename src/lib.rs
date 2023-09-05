@@ -18,14 +18,18 @@
 #[cfg(feature = "debug")]
 macro_rules! hash_debug {
     ($f:tt) => {{
-        println!($f);
+        let d = $crate::CallDepth::new();
+        let s = format!($f);
+        println!("hash_debug: {d}{s}");
     }};
     ($f:tt, $($arg:tt)*) => {{
-        use std::io::Write;
+        // use std::io::Write;
         let d = $crate::CallDepth::new();
-        let mut lock = std::io::stdout().lock();
-        write!(lock, "hash_debug: {d}").unwrap();
-        writeln!(lock, $f, $($arg)*).unwrap();
+        let s = format!($f, $($arg)*);
+        println!("hash_debug: {d}{s}");
+        // let mut lock = std::io::stdout().lock();
+        // write!(lock, "hash_debug: {d}").unwrap();
+        // writeln!(lock, $f, $($arg)*).unwrap();
     }};
 }
 
