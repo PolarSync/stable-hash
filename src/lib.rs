@@ -33,6 +33,9 @@ macro_rules! hash_debug {
     }};
 }
 
+#[cfg(feature = "debug")]
+pub use hex;
+
 #[macro_export]
 #[cfg(not(feature = "debug"))]
 macro_rules! hash_debug {
