@@ -11,7 +11,7 @@ macro_rules! impl_tuple {
                 let ($($T,)*) = self;
 
                 let mut i = 0;
-                $crate::hash_debug!("Tuple: {}", std::any::type_name::<self>());
+                $crate::hash_debug!("Tuple: {}", std::any::type_name::<Self>());
                 let d = CallDepth::new();
                 $(
                     $crate::hash_debug!("Tuple Inner ({i}): {}", std::any::type_name::<$T>());

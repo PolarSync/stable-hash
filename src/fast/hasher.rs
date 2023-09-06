@@ -15,6 +15,7 @@ impl StableHasher for FastStableHasher {
     type Bytes = [u8; 32];
 
     fn new() -> Self {
+        hash_debug!("New hasher");
         Self {
             mixer: FldMix::new(),
             count: 0,
@@ -33,7 +34,7 @@ impl StableHasher for FastStableHasher {
         let mut bytes = [0; 32];
         bytes[0..24].copy_from_slice(&mixer);
         bytes[24..32].copy_from_slice(&count);
-
+        hash_debug!("to_bytes: {}", hex::encode(bytes));
         bytes
     }
 
@@ -55,7 +56,7 @@ impl StableHasher for FastStableHasher {
         // https://fastcompression.blogspot.com/2019/03/presenting-xxh3.html
         let d = CallDepth::new();
         hash_debug!(
-            "input bytes: {}, hashed #{}",
+            "write bytes: {}, hashed #{}",
             hex::encode(bytes),
             self.count
         );
