@@ -19,6 +19,7 @@ pub(self) fn unordered_unique_stable_hash<H: StableHasher>(
 
     let d = CallDepth::new();
     let mut count = 0;
+    hash_debug!("start hashing struct fields");
     for member in items {
         // Must create an independent hasher to "break" relationship between
         // independent field addresses.
@@ -30,6 +31,7 @@ pub(self) fn unordered_unique_stable_hash<H: StableHasher>(
         count += 1;
         hash_debug!("member {count}: {}", hex::encode(state.to_bytes()));
     }
+    hash_debug!("end hashing struct fields");
 }
 
 impl<'a, T: StableHash> StableHash for &'a T {
