@@ -34,7 +34,7 @@ impl StableHasher for FastStableHasher {
         let mut bytes = [0; 32];
         bytes[0..24].copy_from_slice(&mixer);
         bytes[24..32].copy_from_slice(&count);
-        hash_debug!("to_bytes: {}", hex::encode(bytes));
+        // hash_debug!("to_bytes: {}", hex::encode(bytes));
         bytes
     }
 
@@ -56,13 +56,20 @@ impl StableHasher for FastStableHasher {
         // https://fastcompression.blogspot.com/2019/03/presenting-xxh3.html
         let d = CallDepth::new();
         hash_debug!(
-            "write bytes: {}, hashed #{}",
+            "start write bytes: {}, hashed #{}, {}",
             hex::encode(bytes),
-            self.count
+            self.count,
+            hex::encode(self.to_bytes())
         );
         let hash = xxhash_rust::xxh3::xxh3_128_with_seed(bytes, field_address as u64);
         self.mixer.mix(hash, (field_address >> 64) as u64);
         self.count += 1;
+        hash_debug!(
+            "end write bytes: {}, hashed #{}, {}",
+            hex::encode(bytes),
+            self.count,
+            hex::encode(self.to_bytes())
+        );
     }
 
     fn finish(&self) -> u128 {
