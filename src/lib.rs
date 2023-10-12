@@ -23,13 +23,9 @@ macro_rules! hash_debug {
         println!("hash_debug: {d}{s}");
     }};
     ($f:tt, $($arg:tt)*) => {{
-        // use std::io::Write;
         let d = $crate::CallDepth::new();
         let s = format!($f, $($arg)*);
         println!("hash_debug: {d}{s}");
-        // let mut lock = std::io::stdout().lock();
-        // write!(lock, "hash_debug: {d}").unwrap();
-        // writeln!(lock, $f, $($arg)*).unwrap();
     }};
 }
 
@@ -47,13 +43,19 @@ macro_rules! hash_debug {
     }};
 }
 
+#[cfg(feature = "debug")]
 #[derive(Debug)]
 pub struct CallDepth(u32);
 
+#[cfg(not(feature = "debug"))]
+pub struct CallDepth;
+
+#[cfg(feature = "debug")]
 thread_local! {
   static DEPTH: core::cell::Cell<u32> = core::cell::Cell::new(0);
 }
 
+#[cfg(feature = "debug")]
 impl Drop for CallDepth {
     fn drop(&mut self) {
         DEPTH.with(|d| {
@@ -69,6 +71,7 @@ impl Default for CallDepth {
 }
 
 impl CallDepth {
+    #[cfg(feature = "debug")]
     pub fn new() -> Self {
         Self(DEPTH.with(|d| {
             let depth = d.get();
@@ -76,10 +79,15 @@ impl CallDepth {
             depth
         }))
     }
+    #[cfg(not(feature = "debug"))]
+    pub fn new() -> Self {
+        Self
+    }
 }
 
 impl core::fmt::Display for CallDepth {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[cfg(feature = "debug")]
         for _ in 0..self.0 {
             f.write_str("   ")?;
         }
