@@ -41,7 +41,7 @@ impl StableHash for AsInt<'_> {
     fn stable_hash<H: StableHasher>(&self, field_address: H::Addr, state: &mut H) {
         profile_method!(stable_hash);
 
-        let d = CallDepth::new();
+        let _d = CallDepth::new();
         // Having the negative sign be a child makes it possible to change the schema
         // from u32 to i64 in a backward compatible way.
         // This is also allowing for negative 0, like float, which is not used by

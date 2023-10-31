@@ -15,33 +15,41 @@
 //!    still possible to find collisions in the final output, especially for the non-cryptographic version)
 
 #[macro_export]
-#[cfg(feature = "debug")]
+// #[cfg(feature = "debug")]
 macro_rules! hash_debug {
     ($f:tt) => {{
-        let d = $crate::CallDepth::new();
-        let s = format!($f);
-        println!("hash_debug: {d}{s}");
+        if $crate::should_hash() {
+            let d = $crate::CallDepth::new();
+            let s = format!($f);
+            println!("hash_debug: {d}{s}");
+        }
     }};
     ($f:tt, $($arg:tt)*) => {{
-        let d = $crate::CallDepth::new();
-        let s = format!($f, $($arg)*);
-        println!("hash_debug: {d}{s}");
+        if $crate::should_hash() {
+            let d = $crate::CallDepth::new();
+            let s = format!($f, $($arg)*);
+            println!("hash_debug: {d}{s}");
+        }
     }};
+}
+
+#[inline(always)]
+pub fn should_hash() -> bool {
+    #[cfg(feature = "debug")]
+    return LOG_HASH.get();
+    #[cfg(not(feature = "debug"))]
+    false
+}
+
+#[allow(unused)]
+#[inline(always)]
+pub fn set_hash(b: bool) {
+    #[cfg(feature = "debug")]
+    LOG_HASH.set(b)
 }
 
 #[cfg(feature = "debug")]
 pub use hex;
-
-#[macro_export]
-#[cfg(not(feature = "debug"))]
-macro_rules! hash_debug {
-    ($f:tt) => {{
-        // do nothing
-    }};
-    ($f:tt, $($arg:tt)*) => {{
-        // do nothing
-    }};
-}
 
 #[cfg(feature = "debug")]
 #[derive(Debug)]
@@ -53,14 +61,13 @@ pub struct CallDepth;
 #[cfg(feature = "debug")]
 thread_local! {
   static DEPTH: core::cell::Cell<u32> = core::cell::Cell::new(0);
+  static LOG_HASH: core::cell::Cell<bool> = core::cell::Cell::new(true);
 }
 
 #[cfg(feature = "debug")]
 impl Drop for CallDepth {
     fn drop(&mut self) {
-        DEPTH.with(|d| {
-            d.set(self.0);
-        })
+        DEPTH.set(self.0);
     }
 }
 
@@ -73,11 +80,11 @@ impl Default for CallDepth {
 impl CallDepth {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
-        Self(DEPTH.with(|d| {
-            let depth = d.get();
-            d.set(depth + 1);
+        Self({
+            let depth = DEPTH.get();
+            DEPTH.set(depth + 1);
             depth
-        }))
+        })
     }
     #[cfg(not(feature = "debug"))]
     pub fn new() -> Self {
@@ -86,10 +93,10 @@ impl CallDepth {
 }
 
 impl core::fmt::Display for CallDepth {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[cfg(feature = "debug")]
         for _ in 0..self.0 {
-            f.write_str("   ")?;
+            _f.write_str("   ")?;
         }
         Ok(())
     }

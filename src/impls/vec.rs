@@ -11,7 +11,7 @@ impl<T: StableHash> StableHash for Vec<T> {
 impl<'a, T: StableHash> StableHash for &'a [T] {
     fn stable_hash<H: StableHasher>(&self, field_address: H::Addr, state: &mut H) {
         profile_method!(stable_hash);
-        let d = CallDepth::new();
+        let _d = CallDepth::new();
         for (index, item) in self.iter().enumerate() {
             hash_debug!("slice: {index} of {}", std::any::type_name::<T>());
             item.stable_hash(field_address.child(index as u64), state);

@@ -54,7 +54,7 @@ impl StableHasher for FastStableHasher {
         // Also considered: t1ha3, MetroHash, SipHasher24
         // For more information about XXH3, see this:
         // https://fastcompression.blogspot.com/2019/03/presenting-xxh3.html
-        let d = CallDepth::new();
+        let _d = CallDepth::new();
         hash_debug!(
             "start write bytes: {}, hashed #{}, {}",
             hex::encode(bytes),

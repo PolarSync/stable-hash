@@ -12,7 +12,7 @@ macro_rules! impl_tuple {
 
                 let mut i = 0;
                 $crate::hash_debug!("Tuple: {}", std::any::type_name::<Self>());
-                let d = CallDepth::new();
+                let _d = CallDepth::new();
                 $(
                     $crate::hash_debug!("Tuple Inner ({i}): {}", std::any::type_name::<$T>());
                     $T.stable_hash(field_address.child(i), state);

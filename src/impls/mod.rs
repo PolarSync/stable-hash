@@ -17,7 +17,7 @@ pub(self) fn unordered_unique_stable_hash<H: StableHasher>(
 ) {
     profile_fn!(unordered_unique_stable_hash);
 
-    let d = CallDepth::new();
+    let _d = CallDepth::new();
     let mut count = 0;
     hash_debug!("start hashing struct fields");
     for member in items {
