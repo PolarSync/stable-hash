@@ -61,7 +61,7 @@ pub struct CallDepth;
 #[cfg(feature = "debug")]
 thread_local! {
   static DEPTH: core::cell::Cell<u32> = core::cell::Cell::new(0);
-  static LOG_HASH: core::cell::Cell<bool> = core::cell::Cell::new(true);
+  static LOG_HASH: core::cell::Cell<bool> = core::cell::Cell::new(false);
 }
 
 #[cfg(feature = "debug")]
