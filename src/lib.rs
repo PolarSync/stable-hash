@@ -18,14 +18,14 @@
 // #[cfg(feature = "debug")]
 macro_rules! hash_debug {
     ($f:tt) => {{
-        if $crate::should_hash() {
+        if $crate::is_debug() {
             let d = $crate::CallDepth::new();
             let s = format!($f);
             println!("hash_debug: {d}{s}");
         }
     }};
     ($f:tt, $($arg:tt)*) => {{
-        if $crate::should_hash() {
+        if $crate::is_debug() {
             let d = $crate::CallDepth::new();
             let s = format!($f, $($arg)*);
             println!("hash_debug: {d}{s}");
@@ -34,7 +34,7 @@ macro_rules! hash_debug {
 }
 
 #[inline(always)]
-pub fn should_hash() -> bool {
+pub fn is_debug() -> bool {
     #[cfg(feature = "debug")]
     return LOG_HASH.get();
     #[cfg(not(feature = "debug"))]
@@ -43,7 +43,7 @@ pub fn should_hash() -> bool {
 
 #[allow(unused)]
 #[inline(always)]
-pub fn set_hash(b: bool) {
+pub fn set_debug(b: bool) {
     #[cfg(feature = "debug")]
     LOG_HASH.set(b)
 }
@@ -99,6 +99,27 @@ impl core::fmt::Display for CallDepth {
             _f.write_str("   ")?;
         }
         Ok(())
+    }
+}
+
+pub struct DebugHash(());
+
+impl DebugHash {
+    pub fn new() -> Self {
+        set_debug(true);
+        Self(())
+    }
+}
+
+impl Default for DebugHash {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Drop for DebugHash {
+    fn drop(&mut self) {
+        set_debug(false);
     }
 }
 

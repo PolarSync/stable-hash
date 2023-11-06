@@ -23,8 +23,14 @@ impl StableHasher for FastStableHasher {
     }
 
     fn mixin(&mut self, other: &Self) {
+        hash_debug!(
+            "mixin start {}, {}",
+            hex::encode(self.to_bytes()),
+            hex::encode(other.to_bytes())
+        );
         self.mixer.mixin(&other.mixer);
         self.count += other.count;
+        hash_debug!("mixin end {}", hex::encode(self.to_bytes()));
     }
 
     fn to_bytes(&self) -> Self::Bytes {
@@ -34,7 +40,6 @@ impl StableHasher for FastStableHasher {
         let mut bytes = [0; 32];
         bytes[0..24].copy_from_slice(&mixer);
         bytes[24..32].copy_from_slice(&count);
-        // hash_debug!("to_bytes: {}", hex::encode(bytes));
         bytes
     }
 
