@@ -48,7 +48,6 @@ pub fn set_debug(b: bool) {
     LOG_HASH.set(b)
 }
 
-#[cfg(feature = "debug")]
 pub use hex;
 
 #[cfg(feature = "debug")]
