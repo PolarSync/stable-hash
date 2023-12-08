@@ -15,7 +15,6 @@
 //!    still possible to find collisions in the final output, especially for the non-cryptographic version)
 
 #[macro_export]
-// #[cfg(feature = "debug")]
 macro_rules! hash_debug {
     ($f:tt) => {{
         if $crate::is_debug() {
@@ -36,19 +35,18 @@ macro_rules! hash_debug {
 #[inline(always)]
 pub fn is_debug() -> bool {
     #[cfg(feature = "debug")]
-    return LOG_HASH.get();
+    return LOG_HASH.get() > 0;
     #[cfg(not(feature = "debug"))]
     false
 }
 
-#[allow(unused)]
-#[inline(always)]
-pub fn set_debug(b: bool) {
-    #[cfg(feature = "debug")]
-    LOG_HASH.set(b)
-}
-
 pub use hex;
+
+#[cfg(feature = "debug")]
+thread_local! {
+  static DEPTH: core::cell::Cell<u32> = core::cell::Cell::new(0);
+  static LOG_HASH: core::cell::Cell<u32> = core::cell::Cell::new(0);
+}
 
 #[cfg(feature = "debug")]
 #[derive(Debug)]
@@ -56,12 +54,6 @@ pub struct CallDepth(u32);
 
 #[cfg(not(feature = "debug"))]
 pub struct CallDepth;
-
-#[cfg(feature = "debug")]
-thread_local! {
-  static DEPTH: core::cell::Cell<u32> = core::cell::Cell::new(0);
-  static LOG_HASH: core::cell::Cell<bool> = core::cell::Cell::new(false);
-}
 
 #[cfg(feature = "debug")]
 impl Drop for CallDepth {
@@ -101,12 +93,17 @@ impl core::fmt::Display for CallDepth {
     }
 }
 
-pub struct DebugHash(());
+#[cfg(feature = "debug")]
+#[derive(Debug)]
+pub struct DebugHash(u32);
 
-impl DebugHash {
-    pub fn new() -> Self {
-        set_debug(true);
-        Self(())
+#[cfg(not(feature = "debug"))]
+pub struct DebugHash;
+
+#[cfg(feature = "debug")]
+impl Drop for DebugHash {
+    fn drop(&mut self) {
+        LOG_HASH.set(self.0);
     }
 }
 
@@ -116,9 +113,18 @@ impl Default for DebugHash {
     }
 }
 
-impl Drop for DebugHash {
-    fn drop(&mut self) {
-        set_debug(false);
+impl DebugHash {
+    #[cfg(feature = "debug")]
+    pub fn new() -> Self {
+        Self({
+            let depth = LOG_HASH.get();
+            LOG_HASH.set(depth + 1);
+            depth
+        })
+    }
+    #[cfg(not(feature = "debug"))]
+    pub fn new() -> Self {
+        Self
     }
 }
 
