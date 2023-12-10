@@ -40,6 +40,10 @@ pub fn is_debug() -> bool {
     false
 }
 
+pub fn debug_feature() -> bool {
+    cfg!(feature = "debug")
+}
+
 pub use hex;
 
 #[cfg(feature = "debug")]
@@ -71,11 +75,9 @@ impl Default for CallDepth {
 impl CallDepth {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
-        Self({
-            let depth = DEPTH.get();
-            DEPTH.set(depth + 1);
-            depth
-        })
+        let depth = DEPTH.get();
+        DEPTH.set(depth + 1);
+        Self(depth)
     }
     #[cfg(not(feature = "debug"))]
     pub fn new() -> Self {
@@ -116,11 +118,15 @@ impl Default for DebugHash {
 impl DebugHash {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
-        Self({
+        pub fn new() -> Self {
             let depth = LOG_HASH.get();
             LOG_HASH.set(depth + 1);
-            depth
-        })
+            println!(
+                "new DebugHash with depth {depth}, LOG_HASH = {}",
+                LOG_HASH.get()
+            );
+            Self(depth)
+        }
     }
     #[cfg(not(feature = "debug"))]
     pub fn new() -> Self {
