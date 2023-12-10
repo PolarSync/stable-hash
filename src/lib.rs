@@ -36,7 +36,7 @@ macro_rules! hash_debug {
 pub fn is_debug() -> bool {
     #[cfg(feature = "debug")]
     {
-        let log_hash = LOG_HASH.get();
+        let log_hash = statics::get_log_hash();
         if Some(std::thread::current().id()) == special_thread() {
             println!("LOG_HASH = {log_hash}");
         }
@@ -60,13 +60,36 @@ pub fn special_thread() -> Option<std::thread::ThreadId> {
 }
 
 pub fn set_special_thread(id: Option<std::thread::ThreadId>) {
+    println!("special thread is now {id:?}");
     *SPECIAL_THREAD.lock().unwrap() = id;
 }
 
 #[cfg(feature = "debug")]
-thread_local! {
-  static DEPTH: core::cell::Cell<u32> = core::cell::Cell::new(0);
-  static LOG_HASH: core::cell::Cell<u32> = core::cell::Cell::new(0);
+mod statics {
+    use core::cell::Cell;
+    thread_local! {
+        static DEPTH: Cell<u32> = Cell::new(0);
+        static LOG_HASH: Cell<u32> = Cell::new(0);
+    }
+    pub fn set_depth(d: u32) {
+        DEPTH.set(d);
+    }
+    pub fn get_depth() -> u32 {
+        DEPTH.get()
+    }
+    pub fn set_log_hash(lh: u32, from: &'static str) {
+        let current = LOG_HASH.get();
+        if current != lh {
+            println!(
+                "Changing LOG_HASH from {current} to {lh} by thread {:?} from {from}",
+                std::thread::current().id()
+            );
+            LOG_HASH.set(lh);
+        }
+    }
+    pub fn get_log_hash() -> u32 {
+        LOG_HASH.get()
+    }
 }
 
 #[cfg(feature = "debug")]
@@ -79,7 +102,7 @@ pub struct CallDepth;
 #[cfg(feature = "debug")]
 impl Drop for CallDepth {
     fn drop(&mut self) {
-        DEPTH.set(self.0);
+        statics::set_depth(self.0);
     }
 }
 
@@ -92,8 +115,8 @@ impl Default for CallDepth {
 impl CallDepth {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
-        let depth = DEPTH.get();
-        DEPTH.set(depth + 1);
+        let depth = statics::get_depth();
+        statics::set_depth(depth + 1);
         Self(depth)
     }
     #[cfg(not(feature = "debug"))]
@@ -114,7 +137,7 @@ impl core::fmt::Display for CallDepth {
 
 #[cfg(feature = "debug")]
 #[derive(Debug)]
-pub struct DebugHash(u32);
+pub struct DebugHash(u32, core::marker::PhantomData<*const ()>);
 
 #[cfg(not(feature = "debug"))]
 pub struct DebugHash;
@@ -122,7 +145,7 @@ pub struct DebugHash;
 #[cfg(feature = "debug")]
 impl Drop for DebugHash {
     fn drop(&mut self) {
-        LOG_HASH.set(self.0);
+        statics::set_log_hash(self.0, "DebugHash drop");
     }
 }
 
@@ -136,13 +159,13 @@ impl DebugHash {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
         let thread_id = std::thread::current().id();
-        let depth = LOG_HASH.get();
-        LOG_HASH.set(depth + 1);
+        let depth = statics::get_log_hash();
+        statics::set_log_hash(depth + 1, "DebugHash new");
         println!(
             "new DebugHash with depth {depth}, LOG_HASH = {}, thread ({thread_id:?})",
-            LOG_HASH.get()
+            statics::get_log_hash()
         );
-        Self(depth)
+        Self(depth, core::marker::PhantomData)
     }
     #[cfg(not(feature = "debug"))]
     pub fn new() -> Self {
