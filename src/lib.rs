@@ -37,7 +37,9 @@ pub fn is_debug() -> bool {
     #[cfg(feature = "debug")]
     {
         let log_hash = LOG_HASH.get();
-        println!("is_debug: LOG_HASH = {log_hash}");
+        if Some(std::thread::current().id()) == special_thread() {
+            println!("LOG_HASH = {log_hash}");
+        }
         return log_hash > 0;
     }
     #[cfg(not(feature = "debug"))]
@@ -49,6 +51,17 @@ pub fn debug_feature() -> bool {
 }
 
 pub use hex;
+
+static SPECIAL_THREAD: std::sync::Mutex<Option<std::thread::ThreadId>> =
+    std::sync::Mutex::new(None);
+
+pub fn special_thread() -> Option<std::thread::ThreadId> {
+    *SPECIAL_THREAD.lock().unwrap()
+}
+
+pub fn set_special_thread(id: Option<std::thread::ThreadId>) {
+    *SPECIAL_THREAD.lock().unwrap() = id;
+}
 
 #[cfg(feature = "debug")]
 thread_local! {
@@ -122,10 +135,11 @@ impl Default for DebugHash {
 impl DebugHash {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
+        let thread_id = std::thread::current().id();
         let depth = LOG_HASH.get();
         LOG_HASH.set(depth + 1);
         println!(
-            "new DebugHash with depth {depth}, LOG_HASH = {}",
+            "new DebugHash with depth {depth}, LOG_HASH = {}, thread ({thread_id:?})",
             LOG_HASH.get()
         );
         Self(depth)
