@@ -118,15 +118,13 @@ impl Default for DebugHash {
 impl DebugHash {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
-        pub fn new() -> Self {
-            let depth = LOG_HASH.get();
-            LOG_HASH.set(depth + 1);
-            println!(
-                "new DebugHash with depth {depth}, LOG_HASH = {}",
-                LOG_HASH.get()
-            );
-            Self(depth)
-        }
+        let depth = LOG_HASH.get();
+        LOG_HASH.set(depth + 1);
+        println!(
+            "new DebugHash with depth {depth}, LOG_HASH = {}",
+            LOG_HASH.get()
+        );
+        Self(depth)
     }
     #[cfg(not(feature = "debug"))]
     pub fn new() -> Self {
