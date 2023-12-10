@@ -35,9 +35,13 @@ macro_rules! hash_debug {
 #[inline(always)]
 pub fn is_debug() -> bool {
     #[cfg(feature = "debug")]
-    return LOG_HASH.get() > 0;
+    {
+        let log_hash = LOG_HASH.get();
+        println!("is_debug: LOG_HASH = {log_hash}");
+        return log_hash > 0;
+    }
     #[cfg(not(feature = "debug"))]
-    false
+    return false;
 }
 
 pub fn debug_feature() -> bool {
