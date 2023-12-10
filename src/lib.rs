@@ -37,32 +37,13 @@ pub fn is_debug() -> bool {
     #[cfg(feature = "debug")]
     {
         let log_hash = statics::get_log_hash();
-        if Some(std::thread::current().id()) == special_thread() {
-            println!("LOG_HASH = {log_hash}");
-        }
         return log_hash > 0;
     }
     #[cfg(not(feature = "debug"))]
     return false;
 }
 
-pub fn debug_feature() -> bool {
-    cfg!(feature = "debug")
-}
-
 pub use hex;
-
-static SPECIAL_THREAD: std::sync::Mutex<Option<std::thread::ThreadId>> =
-    std::sync::Mutex::new(None);
-
-pub fn special_thread() -> Option<std::thread::ThreadId> {
-    *SPECIAL_THREAD.lock().unwrap()
-}
-
-pub fn set_special_thread(id: Option<std::thread::ThreadId>) {
-    println!("special thread is now {id:?}");
-    *SPECIAL_THREAD.lock().unwrap() = id;
-}
 
 #[cfg(feature = "debug")]
 mod statics {
@@ -77,15 +58,8 @@ mod statics {
     pub fn get_depth() -> u32 {
         DEPTH.get()
     }
-    pub fn set_log_hash(lh: u32, from: &'static str) {
-        let current = LOG_HASH.get();
-        if current != lh {
-            println!(
-                "Changing LOG_HASH from {current} to {lh} by thread {:?} from {from}",
-                std::thread::current().id()
-            );
-            LOG_HASH.set(lh);
-        }
+    pub fn set_log_hash(lh: u32) {
+        LOG_HASH.set(lh);
     }
     pub fn get_log_hash() -> u32 {
         LOG_HASH.get()
@@ -145,7 +119,7 @@ pub struct DebugHash;
 #[cfg(feature = "debug")]
 impl Drop for DebugHash {
     fn drop(&mut self) {
-        statics::set_log_hash(self.0, "DebugHash drop");
+        statics::set_log_hash(self.0);
     }
 }
 
@@ -158,13 +132,8 @@ impl Default for DebugHash {
 impl DebugHash {
     #[cfg(feature = "debug")]
     pub fn new() -> Self {
-        let thread_id = std::thread::current().id();
         let depth = statics::get_log_hash();
-        statics::set_log_hash(depth + 1, "DebugHash new");
-        println!(
-            "new DebugHash with depth {depth}, LOG_HASH = {}, thread ({thread_id:?})",
-            statics::get_log_hash()
-        );
+        statics::set_log_hash(depth + 1);
         Self(depth, core::marker::PhantomData)
     }
     #[cfg(not(feature = "debug"))]
